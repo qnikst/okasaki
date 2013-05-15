@@ -30,3 +30,11 @@ insert t x = fromMaybe t (go t x)
     go (T l v r) x | x == v = Nothing
                    | x  < v = fmap (\l' -> T l' v r) (go l x)
                    | x  > v = fmap (\r' -> T l v r') (go r x)
+
+insert1 :: (Ord a) => UnbalancedSet a -> a -> UnbalancedSet a
+insert1 t x = go id t x
+  where
+    go a E x = a (T E x E)
+    go a (T l v r) x | x == v = t
+                     | x  < v = go (\t -> T t v r) l x
+                     | x  > v = go (\t -> T l v t) r x
