@@ -32,6 +32,17 @@ insert t@(T l v r) x = go id t v x
         | x <= v    = go (\t -> a (T t v r)) l v x
         | otherwise = go (\t -> a (T l v t)) r z x
 
+insert2_4_1 :: (Ord a) => UnbalancedSet a -> a -> UnbalancedSet a
+insert2_4_1 E x = T E x E
+insert2_4_1 t@(T _ v _) x = fromMaybe t (go t v x)
+  where 
+    go  E z x 
+        | x /= z    = Just (T E x E)
+        | otherwise = Nothing
+    go (T l v r) z x
+        | x  <= v = fmap (\l' -> T l' v r) (go l v x)
+        | x  >  v = fmap (\r' -> T l v r') (go r z x)
+
 insert2_3_1 :: (Ord a) => UnbalancedSet a -> a -> UnbalancedSet a
 insert2_3_1 t x = fromMaybe t (go t x)
   where 
@@ -62,9 +73,15 @@ insert_m t v | member t v = t
 instance NFData a => NFData (UnbalancedSet a)
 
 main = do
+  quickCheck ((\xs -> foldl' insert empty xs == foldl insert2_4_1 empty xs) :: [Int] -> Bool)
+  quickCheck ((\xs -> foldl' insert empty xs == foldl insert2_3_1 empty xs) :: [Int] -> Bool)
+  quickCheck ((\xs -> foldl' insert empty xs == foldl insert2_3_2 empty xs) :: [Int] -> Bool)
+  quickCheck ((\xs -> foldl' insert empty xs == foldl insert2_2 empty xs)   :: [Int] -> Bool)
+  quickCheck ((\xs -> foldl' insert empty xs == foldl insert_m empty xs)    :: [Int] -> Bool)
   xs <- head <$> sample' (vector 102400) :: IO [Int]
   defaultMain 
     [ bench "2.4"       $ nf (foldl' insert      empty) xs
+    , bench "2.4.1"     $ nf (foldl' insert2_4_1 empty) xs
     , bench "2.3 Maybe" $ nf (foldl' insert2_3_1 empty) xs
     , bench "2.3 CPS"   $ nf (foldl' insert2_3_2 empty) xs
     , bench "2.2"       $ nf (foldl' insert2_2   empty) xs
