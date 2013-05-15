@@ -56,8 +56,8 @@ insert2_3_2 t x = go id t x
   where
     go a E x = a (T E x E)
     go a (T l v r) x | x == v = t
-                     | x  < v = go (\t -> a $ T t v r) l x
-                     | x  > v = go (\t -> a $ T l v t) r x
+                     | x  < v = go (\t -> a $! T t v r) l x
+                     | x  > v = go (\t -> a $! T l v t) r x
 
 insert2_2 :: (Ord a) => UnbalancedSet a -> a -> UnbalancedSet a
 insert2_2 E x = T E x E
@@ -78,7 +78,7 @@ main = do
   quickCheck ((\xs -> foldl' insert empty xs == foldl insert2_3_2 empty xs) :: [Int] -> Bool)
   quickCheck ((\xs -> foldl' insert empty xs == foldl insert2_2 empty xs)   :: [Int] -> Bool)
   quickCheck ((\xs -> foldl' insert empty xs == foldl insert_m empty xs)    :: [Int] -> Bool)
-  xs <- head <$> sample' (vector 102400) :: IO [Int]
+  xs <- head <$> sample' (vector 32768) :: IO [Int]
   defaultMain 
     [ bench "2.4"       $ nf (foldl' insert      empty) xs
     , bench "2.4.1"     $ nf (foldl' insert2_4_1 empty) xs
