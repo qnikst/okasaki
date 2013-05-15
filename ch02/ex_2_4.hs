@@ -80,10 +80,28 @@ main = do
   quickCheck ((\xs -> foldl' insert empty xs == foldl insert_m empty xs)    :: [Int] -> Bool)
   xs <- head <$> sample' (vector 32768) :: IO [Int]
   defaultMain 
-    [ bench "2.4"       $ nf (foldl' insert      empty) xs
-    , bench "2.4.1"     $ nf (foldl' insert2_4_1 empty) xs
-    , bench "2.3 Maybe" $ nf (foldl' insert2_3_1 empty) xs
-    , bench "2.3 CPS"   $ nf (foldl' insert2_3_2 empty) xs
-    , bench "2.2"       $ nf (foldl' insert2_2   empty) xs
-    , bench "member"    $ nf (foldl' insert_m    empty) xs
-    ]
+    [ bgroup "different"
+        [ bench "2.4"       $ nf (foldl' insert      empty) xs
+        , bench "2.4.1"     $ nf (foldl' insert2_4_1 empty) xs
+        , bench "2.3 maybe" $ nf (foldl' insert2_3_1 empty) xs
+        , bench "2.3 cps"   $ nf (foldl' insert2_3_2 empty) xs
+        , bench "2.2"       $ nf (foldl' insert2_2   empty) xs
+        , bench "member"    $ nf (foldl' insert_m    empty) xs
+        ]
+    , bgroup "up"
+        [ bench "2.4"       $ nf (foldl' insert      empty) [1..(1024::Int)]
+        , bench "2.4.1"     $ nf (foldl' insert2_4_1 empty) [1..(1024::Int)]
+        , bench "2.3 maybe" $ nf (foldl' insert2_3_1 empty) [1..(1024::Int)]
+        , bench "2.3 cps"   $ nf (foldl' insert2_3_2 empty) [1..(1024::Int)]
+        , bench "2.2"       $ nf (foldl' insert2_2   empty) [1..(1024::Int)]
+        , bench "member"    $ nf (foldl' insert_m    empty) [1..(1024::Int)]
+        ]
+    , bgroup "const"
+        [ bench "2.4"       $ nf (foldl' insert      empty) $ xs++(replicate 1024 (1::Int))
+        , bench "2.4.1"     $ nf (foldl' insert2_4_1 empty) $ xs++(replicate 1024 (1::Int))
+        , bench "2.3 maybe" $ nf (foldl' insert2_3_1 empty) $ xs++(replicate 1024 (1::Int))
+        , bench "2.3 cps"   $ nf (foldl' insert2_3_2 empty) $ xs++(replicate 1024 (1::Int))
+        , bench "2.2"       $ nf (foldl' insert2_2   empty) $ xs++(replicate 1024 (1::Int))
+        , bench "member"    $ nf (foldl' insert_m    empty) $ xs++(replicate 1024 (1::Int))
+        ]
+    ] 
