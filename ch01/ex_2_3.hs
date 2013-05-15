@@ -36,5 +36,5 @@ insert1 t x = go id t x
   where
     go a E x = a (T E x E)
     go a (T l v r) x | x == v = t
-                     | x  < v = go (\t -> T t v r) l x
-                     | x  > v = go (\t -> T l v t) r x
+                     | x  < v = go (\t -> a $ T t v r) l x
+                     | x  > v = go (\t -> a $ T l v t) r x
