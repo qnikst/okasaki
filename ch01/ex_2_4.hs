@@ -27,10 +27,11 @@ member t@(T l x r) a = go t x a
 
 insert :: (Ord a) => UnbalancedSet a -> a -> UnbalancedSet a
 insert E x = T E x E
-insert t@(T l v r) x = fromMaybe t (go t v x)
+insert t@(T l v r) x = go id t v x
   where 
-    go E z x = if x == z 
-                   then Nothing
-                   else Just (T E x E)
-    go (T l v r) z x | x <= v    = fmap (\l' -> T l' v r) (go l v x)
-                     | otherwise = fmap (\r' -> T l v r') (go r z x)
+    go a E z x 
+        | x == z     = t
+        | otherwise  = a (T E x E)
+    go a (T l v r) z x 
+        | x <= v    = go (\t -> a (T t v r)) v x
+        | otherwise = go (\t -> a (T l v t)) v x
