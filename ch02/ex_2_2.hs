@@ -1,40 +1,80 @@
-import Control.Exception (assert)
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+import Data.UnbalancedSet
+import Data.Set.Class
 
-data UnbalancedSet a = E | T !(UnbalancedSet a) !a !(UnbalancedSet a) 
-                     deriving (Show, Eq)
+-- test & bench
+import Control.DeepSeq (force)
+import qualified Data.UnbalancedSet.Strict as S
+import Data.List (foldl')
+import Test.Hspec
+import Test.Hspec.QuickCheck
+import Test.QuickCheck hiding (Result)
+import Test.QuickCheck.Property
+import Test.QuickCheck.Assertions
+-- import Test.QuickCheck.Gen
+import Criterion.Main
 
-inv1 :: (Ord a) => UnbalancedSet a -> Bool
-inv1 E = True
-inv1 (T E x E) = True
-inv1 (T l@(T _ lx _) x E) = lx < x && inv1 l
-inv1 (T E x r@(T _ rx _)) = x < rx && inv1 r
-inv1 (T l@(T _ lx _) x r@(T _ rx _)) = lx < x && x < rx && inv1 l && inv1 r 
+-- In the worst case, memper performs approximatelly $2d$ comparison
+-- where $d$ is the depth of the tree . Rewrite member to take no
+-- more than $d+1$ comparisons by keeping track of a candidate element
+-- that \emph{might} be equal to query element
+newtype Ex2_2 a  = Ex2_2  { un ::   UnbalancedSet a }
 
-empty :: UnbalancedSet a
-empty = E
+instance (Ord a) => Set Ex2_2 a where
+  empty  = Ex2_2 empty
+  member _ (Ex2_2 E) = False
+  member x (Ex2_2 t@(T _ tv _)) = go t tv
+    where
+      go E z          = x == z
+      go (T l v r) z
+          | x <= v    = go l v
+          | otherwise = go r z
+  insert v = Ex2_2 . insert v . un
 
-{- 
-- default member 
-member :: (Ord a) => UnbalacedSet a -> a -> Bool
-member E _ = False
-member (T l x r) a | x == a = True
-                   | x  > a = member l a
-                   | x  < a = member r a
+{- Test and benchmark section -}
+newtype Ex2_2S a = Ex2_2S { unS :: S.UnbalancedSet a }
 
--}
-member :: (Ord a) => UnbalancedSet a -> a -> Bool
-member E _ = False
-member t@(T l x r) a = go t x a
+instance (Ord a) => Set Ex2_2S a where
+  empty  = Ex2_2S empty
+  member _ (Ex2_2S S.E) = False
+  member x (Ex2_2S t@(S.T _ tv _)) = go t tv
+    where
+      go S.E z          = x == z
+      go (S.T l v r) z
+          | x <= v    = go l v
+          | otherwise = go r z
+  insert v = Ex2_2S . insert v . unS
+
+main :: IO ()
+main = do
+
+    {- TESTS -}
+    zs <- fmap (!! 10) $ sample' (vector 1024) :: IO [Int]
+    ys <- fmap (!! 10) $ sample' (vector 1024) :: IO [Int]
+    let s = force $ fromList zs
+    hspec $ do
+        describe "member is equal to previous one" $ do
+            it "all elems are found" $ map (`member` Ex2_2 s) zs `shouldBe` (replicate 1024 True)
+            prop "random list" ((\xs -> map (`member` Ex2_2 s) xs ==? map (`member` s) xs {-++zs-}) :: [Int] -> Result)
+ 
+    {- BENCHMARKS -}
+    let bs = zs++ys
+        ws = bottom s
+        s' = force $! toStrict s
+    defaultMain 
+        [ bgroup "common case"
+            [ bench "default member"    $ nf (map (`member` s)) bs 
+            , bench "new member"        $ nf (map (`member` Ex2_2 s)) bs
+            , bench "strict member"     $ nf (map (`member` s')) bs 
+            , bench "strict new member" $ nf (map (`member` Ex2_2S s')) bs
+            ]
+        , bgroup "worst case"
+            [ bench "default member"        $ nf (map (`member` s)) ws 
+            , bench "new member"            $ nf (map (`member` Ex2_2 s)) ws
+            , bench "strcit default member" $ nf (map (`member` s')) bs 
+            , bench "sitrcit new member"    $ nf (map (`member` Ex2_2S s')) bs
+            ]
+        ]
   where
-    go E x a = x == a
-    go (T l v r) z x | x <= v = go l v x
-                     | otherwise = go r z x
-
-insert :: (Ord a) => UnbalancedSet a -> a -> UnbalancedSet a
-insert E x = T E x E
-insert t@(T l v r) x | x == v = t
-                     | x  < v = let res =  T (insert l x) v r
-                                in assert (inv1 res) res
-                     | x  > v = let res = T l v (insert r x)
-                                in assert (inv1 res) res
-
+    fromList :: (Set s a) => [a] -> s a
+    fromList = foldl' (flip insert) empty 
