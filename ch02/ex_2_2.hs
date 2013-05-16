@@ -11,7 +11,6 @@ import Test.Hspec.QuickCheck
 import Test.QuickCheck hiding (Result)
 import Test.QuickCheck.Property
 import Test.QuickCheck.Assertions
--- import Test.QuickCheck.Gen
 import Criterion.Main
 
 -- In the worst case, memper performs approximatelly $2d$ comparison
@@ -59,20 +58,20 @@ main = do
  
     {- BENCHMARKS -}
     let bs = zs++ys
-        ws = bottom s
+        ws = bottom s ++ replicate 1024 maxBound
         s' = force $! toStrict s
     defaultMain 
-        [ bgroup "common case"
+        [ bgroup "common-case"
             [ bench "default member"    $ nf (map (`member` s)) bs 
             , bench "new member"        $ nf (map (`member` Ex2_2 s)) bs
             , bench "strict member"     $ nf (map (`member` s')) bs 
             , bench "strict new member" $ nf (map (`member` Ex2_2S s')) bs
             ]
-        , bgroup "worst case"
+        , bgroup "worst-case"
             [ bench "default member"        $ nf (map (`member` s)) ws 
             , bench "new member"            $ nf (map (`member` Ex2_2 s)) ws
-            , bench "strcit default member" $ nf (map (`member` s')) bs 
-            , bench "sitrcit new member"    $ nf (map (`member` Ex2_2S s')) bs
+            , bench "strict default member" $ nf (map (`member` s')) bs 
+            , bench "strict new member"     $ nf (map (`member` Ex2_2S s')) bs
             ]
         ]
   where
