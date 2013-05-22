@@ -13,10 +13,14 @@ instance Ord a => Heap WeightBasedHeap a where
     insert  x h = singleton x `merge` h
     merge   h E = h
     merge   E h = h
-    merge   h1@(H _ x l1 r1) h2@(H _ y l2 r2) = 
-      if x < y 
-          then makeT x l1 (r1 `merge` h2)
-          else makeT y l2 (h1 `merge` r2)
+    merge   h1@(H s1 x l1 r1) h2@(H s2 y l2 r2) = 
+        let (x',l',r',h') = if x < y                          -- only top-down
+                                then (x,l1,r1,h2) 
+                                else (y,l2,r2,h1)
+            (l'',r'')     = if size l' > size r' + size h'    -- only top-down
+                                then (l',r' `merge` h')
+                                else (r' `merge` h', l')
+        in H (s1+s2) x' l'' r''
     findMin E = error "empty"
     findMin (H _ x _ _) = x
     deleteMin E = error "empty"
