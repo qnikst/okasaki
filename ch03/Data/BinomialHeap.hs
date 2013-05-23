@@ -22,7 +22,7 @@ insTree :: Ord a => Tree a -> Heap a -> Heap a
 insTree x [] = [x]
 insTree x t@(t':ts) 
     | rank x < rank t' = x:t
-    | otherwise        = t':insTree x ts
+    | otherwise        = insTree (x `link` t') ts
 
 insert :: Ord a => a -> Heap a -> Heap a
 insert x ts = insTree (Node 0 x []) ts
