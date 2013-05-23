@@ -24,5 +24,11 @@ Ex3.5:
   [ ] check coverage
   [ ] try to write CPS style (or at least foldr style)
 
+Ex3.6:
+  [ ] test
+  [ ] bench
+  [ ] converage
+  [ ] strict version
+
 
 
