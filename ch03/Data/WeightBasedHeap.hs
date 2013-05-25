@@ -3,13 +3,15 @@
 module Data.WeightBasedHeap where
 
 import Data.Heap.Class
+import Test.Hspec
+import Test.Hspec.QuickCheck
 
 data WeightBasedHeap a = E | H Int a (WeightBasedHeap a) (WeightBasedHeap a) deriving (Eq, Show)
 
-instance Ord a => Heap WeightBasedHeap a where
+instance Heap WeightBasedHeap where
     empty   = E
-    isEmpty E = False
-    isEmpty _ = True
+    isEmpty E = True
+    isEmpty _ = False
     insert  x h = singleton x `merge` h
     merge   h E = h
     merge   E h = h
@@ -26,7 +28,7 @@ instance Ord a => Heap WeightBasedHeap a where
     deleteMin E = error "empty"
     deleteMin (H _ _ l r) = l `merge` r
 
-singleton :: a -> WieghtBasedHeap a
+singleton :: a -> WeightBasedHeap a
 singleton a = H 1 a E E
 
 size E = 0
@@ -36,7 +38,7 @@ makeT x a b = if size a >= size b
                   then H (size b+1) x a b
                   else H (size a+1) x b a
 
-inv_weight:: LeftishHeap a -> Bool
+inv_weight:: WeightBasedHeap a -> Bool
 inv_weight E = True
 inv_weight (H _ _ E E) = True
 inv_weight (H _ _ E h) = False
@@ -44,3 +46,16 @@ inv_weight (H _ _ h1 h2) =
         size h1 >= size h2 
         && inv_weight h1 
         && inv_weight h2
+
+prop_balanced :: (Ord a) => [a] -> Bool
+prop_balanced = inv_weight . fromList
+
+weight_based_heap_spec :: Spec
+weight_based_heap_spec = do
+    describe "weight heap tests" $ do
+        prop "weight heap is balanced" (prop_balanced :: [Int] -> Bool)
+
+weight_based_heap_tests = do
+    heap_spec (T :: T (WeightBasedHeap Int))
+    weight_based_heap_spec
+
