@@ -2,8 +2,8 @@
 import Data.LeftishHeap 
 import Data.Heap.Class
 
-fromList :: Ord a => [a] -> LeftishHeap a
-fromList = head . go . (map singleton)
+fromList' :: Ord a => [a] -> LeftishHeap a
+fromList' = head . go . (map singleton)
   where
     go []       = [empty]
     go [x1]     = [x1]
