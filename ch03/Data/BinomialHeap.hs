@@ -1,11 +1,13 @@
 module Data.BinomialHeap
   where
 
+import Data.Heap.Class
 import Data.Function
+import Test.Hspec
 
 data Tree a = Node Int a [Tree a]
 
-type Heap a = [Tree a]
+newtype BHeap a = BHeap { unBHeap :: [Tree a]}
 
 link :: (Ord a) => Tree a -> Tree a -> Tree a
 link t1@(Node r x1 c1) t2@(Node _ x2 c2)
@@ -18,37 +20,51 @@ root (Node _ r _) = r
 rank :: Tree a -> Int
 rank (Node r _ _) = r
 
-insTree :: Ord a => Tree a -> Heap a -> Heap a
-insTree x [] = [x]
-insTree x t@(t':ts) 
-    | rank x < rank t' = x:t
-    | otherwise        = insTree (x `link` t') ts
+instance Heap BHeap where
+    empty = BHeap []
+    isEmpty (BHeap []) = True
+    isEmpty _  = False
+    insert x ts = insTree (Node 0 x []) ts
+    merge (BHeap []) x = x
+    merge x (BHeap []) = x
+    merge (BHeap x@(x':xs)) (BHeap y@(y':ys)) = 
+        case (compare `on` rank) x' y' of
+            LT -> BHeap $ x':(unBHeap $ merge (BHeap xs) (BHeap y))
+            GT -> BHeap $ y':(unBHeap $ merge (BHeap x) (BHeap ys))
+            EQ -> insTree (x' `link` y') ((BHeap xs) `merge` (BHeap ys))
+    findMin = root . fst . removeMinTree
+    deleteMin ts = 
+        let (Node _ _ fs, ts') = removeMinTree ts
+        in (BHeap (reverse fs)) `merge` ts'
 
-insert :: Ord a => a -> Heap a -> Heap a
-insert x ts = insTree (Node 0 x []) ts
+insTree :: Ord a => Tree a -> BHeap a -> BHeap a
+insTree x (BHeap []) = BHeap [x]
+insTree x (BHeap t@(t':ts)) 
+    | rank x < rank t' = BHeap (x:t)
+    | otherwise        = insTree (x `link` t') (BHeap ts)
 
-merge :: Ord a => Heap a -> Heap a -> Heap a
-merge [] x = x
-merge x [] = x
-merge x@(x':xs) y@(y':ys) = 
-    case (compare `on` rank) x' y' of
-        LT -> x':merge xs y
-        GT -> y':merge x  ys
-        EQ -> insTree (x' `link` y') (xs `merge` ys)
 
-removeMinTree :: (Ord a) => Heap a -> (Tree a, Heap a)
-removeMinTree [t] = (t, [])
-removeMinTree (t:ts) =
-    let (t',ts') = removeMinTree ts
+removeMinTree :: (Ord a) => BHeap a -> (Tree a, BHeap a)
+removeMinTree (BHeap [t]) = (t, BHeap [])
+removeMinTree (BHeap (t:ts)) =
+    let (t',ts') = removeMinTree (BHeap ts)
     in if root t < root t' 
-           then (t, ts)
-           else (t',t:ts')
+           then (t, BHeap ts)
+           else (t',BHeap  (t:unBHeap ts'))
 
-findMin :: Ord a => Heap a -> a
-findMin = root . fst . removeMinTree
+-- prop_balanced :: (Ord a) => [a] -> Bool
+-- prop_balanced = inv_leftish . fromList
 
-deleteMin :: Ord a => Heap a -> Heap a
-deleteMin ts = 
-    let (Node _ _ fs, ts') = removeMinTree ts
-    in reverse fs `merge` ts'
+-- leftish_heap_unit :: T (LeftishHeap a)
+-- leftish_heap_unit = T
 
+{-
+leftish_heap_spec :: Spec
+leftish_heap_spec = do
+    describe "balanced heap tests" $ do
+        prop "balanced heap is balanced" (prop_balanced :: [Int] -> Bool)
+-}
+
+binomial_heap_tests = do
+    heap_spec (T :: T (BHeap Int))
+--    leftish_heap_spec
