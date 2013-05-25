@@ -52,19 +52,6 @@ removeMinTree (BHeap (t:ts)) =
            then (t, BHeap ts)
            else (t',BHeap  (t:unBHeap ts'))
 
--- prop_balanced :: (Ord a) => [a] -> Bool
--- prop_balanced = inv_leftish . fromList
-
--- leftish_heap_unit :: T (LeftishHeap a)
--- leftish_heap_unit = T
-
-{-
-leftish_heap_spec :: Spec
-leftish_heap_spec = do
-    describe "balanced heap tests" $ do
-        prop "balanced heap is balanced" (prop_balanced :: [Int] -> Bool)
--}
-
 binomial_heap_tests = do
     heap_spec (T :: T (BHeap Int))
 --    leftish_heap_spec
