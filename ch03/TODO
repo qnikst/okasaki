@@ -1,24 +1,24 @@
 BinomialHeap:
-  [ ] tests:
-      [ ] check invariants
+  [+] tests:
+      [+] check invariants
   [ ] strict version
   [ ] check coverage
 
 Ex3.3:
-  [ ] tests
+  [+] tests
   [ ] benchs
   [ ] strict version
   [ ] check coverage
 
 Ex3.4:
-  [ ] tests
-      [ ] check size == realsize property
+  [+] tests
+      [+] check size == realsize property
   [ ] benchs
   [ ] strict version
   [ ] check coverage
 
 Ex3.5:
-  [ ] test
+  [+] test
       [ ] equiv to finMin
   [ ] benchs
   [ ] check coverage
