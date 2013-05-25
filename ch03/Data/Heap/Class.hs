@@ -2,12 +2,12 @@
 module Data.Heap.Class
   where
 
-class Ord a => Heap h a where
-    empty     :: h a
-    isEmpty   :: h a -> Bool
-    insert    :: a -> h a -> h a
-    merge     :: h a -> h a -> h a
-    findMin   :: h a -> a
-    deleteMin :: h a -> h a
+class Heap h  where
+    empty     :: Ord a => h a
+    isEmpty   :: Ord a => h a -> Bool
+    insert    :: Ord a => a -> h a -> h a
+    merge     :: Ord a => h a -> h a -> h a
+    findMin   :: Ord a => h a -> a
+    deleteMin :: Ord a => h a -> h a
 
 

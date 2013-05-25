@@ -6,7 +6,7 @@ import Data.Heap.Class
 
 data LeftishHeap a = E | H Int a (LeftishHeap a) (LeftishHeap a) deriving (Eq, Show)
 
-instance Ord a => Heap LeftishHeap a where
+instance Heap LeftishHeap where
     empty   = E
     isEmpty E = False
     isEmpty _ = True
