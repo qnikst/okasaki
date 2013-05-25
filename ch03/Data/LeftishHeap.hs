@@ -3,13 +3,14 @@
 module Data.LeftishHeap where
 
 import Data.Heap.Class
+import Test.QuickCheck
 
 data LeftishHeap a = E | H Int a (LeftishHeap a) (LeftishHeap a) deriving (Eq, Show)
 
 instance Heap LeftishHeap where
     empty   = E
-    isEmpty E = False
-    isEmpty _ = True
+    isEmpty E = True
+    isEmpty _ = False
     insert  x h = singleton x `merge` h
     merge   h E = h
     merge   E h = h
@@ -41,4 +42,7 @@ inv_leftish (H _ _ h1 h2) =
         rank h1 >= rank h2 
         && inv_leftish h1 
         && inv_leftish h2
-                            
+
+tests = do
+  quickCheck (prop_all (undefined :: T (LeftishHeap Int)) :: [Int] -> Bool)
+  quickCheck (prop_min (undefined :: T (LeftishHeap Int)) :: [Int] -> Bool)
