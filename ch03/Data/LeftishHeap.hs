@@ -43,6 +43,10 @@ inv_leftish (H _ _ h1 h2) =
         && inv_leftish h1 
         && inv_leftish h2
 
+prop_balanced :: Ord a => [a] -> Bool
+prop_balanced = inv_leftish . fromList
+
 tests = do
   quickCheck (prop_all (undefined :: T (LeftishHeap Int)) :: [Int] -> Bool)
   quickCheck (prop_min (undefined :: T (LeftishHeap Int)) :: [Int] -> Bool)
+  quickCheck (prop_balanced :: [Int] -> Bool)
