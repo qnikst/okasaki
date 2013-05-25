@@ -1,9 +1,9 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances #-}
 module Data.LeftishHeap where
 
 import Data.Heap.Class
 import Test.QuickCheck
+import Test.Hspec
+import Test.Hspec.QuickCheck
 
 data LeftishHeap a = E | H Int a (LeftishHeap a) (LeftishHeap a) deriving (Eq, Show)
 
@@ -43,10 +43,18 @@ inv_leftish (H _ _ h1 h2) =
         && inv_leftish h1 
         && inv_leftish h2
 
-prop_balanced :: Ord a => [a] -> Bool
+prop_balanced :: (Ord a) => [a] -> Bool
 prop_balanced = inv_leftish . fromList
 
-tests = do
-  quickCheck (prop_all (undefined :: T (LeftishHeap Int)) :: [Int] -> Bool)
-  quickCheck (prop_min (undefined :: T (LeftishHeap Int)) :: [Int] -> Bool)
-  quickCheck (prop_balanced :: [Int] -> Bool)
+leftish_heap_unit :: T (LeftishHeap a)
+leftish_heap_unit = T
+
+leftish_heap_spec :: Spec
+leftish_heap_spec = do
+    describe "leftish heap tests" $ do
+        prop "leftish heap is balanced" (prop_balanced :: [Int] -> Bool)
+
+leftish_heap_tests = do
+    heap_spec (T :: T (LeftishHeap Int))
+    leftish_heap_spec
+

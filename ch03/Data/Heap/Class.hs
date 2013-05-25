@@ -1,10 +1,12 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
 module Data.Heap.Class
   where
 
 import Data.List (foldl', sort)
-import Test.QuickCheck.Property
-import Test.QuickCheck.Assertions
+import Test.Hspec
+import Test.Hspec.QuickCheck
+
+-- import Test.QuickCheck.Property
 
 class Heap h  where
     empty     :: Ord a => h a
@@ -14,7 +16,7 @@ class Heap h  where
     findMin   :: Ord a => h a -> a
     deleteMin :: Ord a => h a -> h a
 
-data T a
+data T a = T
 
 prop_min :: (Ord a, Show a, Heap h) => T (h a) -> [a] -> Bool
 prop_min t [] = True -- TODO: should fail
@@ -36,3 +38,8 @@ fromList = foldl' (flip insert) empty
 toList :: (Heap h, Ord a) => h a -> [a]
 toList h | isEmpty h = []
          | otherwise = findMin h:toList (deleteMin h)
+
+heap_spec :: Heap h => T (h Int) -> Spec
+heap_spec x = describe "structure is a heap" $ do
+    prop "structure contains all elements" (prop_all x :: [Int] -> Bool)
+    prop "structure extranct correct min element" (prop_min x :: [Int] -> Bool)
