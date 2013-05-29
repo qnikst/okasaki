@@ -11,8 +11,7 @@ instance (Heap h) => Heap (ExplicitMin h) where
     isEmpty _ = False
 
     insert v Empty = Heap v (v `insert` empty)
-    insert v (Heap o h) | o < v     = Heap o (v `insert` h)
-                        | otherwise = Heap v (v `insert` h)
+    insert v (Heap o h) = Heap (o `min` v) (v `insert` h)
 
     findMin (Heap m _) = m
     deleteMin (Heap m h) = let h' = deleteMin h 
