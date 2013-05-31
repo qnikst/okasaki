@@ -1,5 +1,6 @@
 module Data.RBTree where
 
+import Control.Arrow ((&&&))
 import Data.List (foldl', sort, nub)
 import Test.Hspec
 import Test.Hspec.QuickCheck
@@ -70,6 +71,9 @@ prop_black :: (Ord a) => [a] -> Bool
 prop_black = inv_black . fromList
   where
     fromList = foldl' (flip insert) E 
+
+rbtree_test :: (Ord a) => Tree a -> Bool
+rbtree_test = uncurry (&&) . (inv_no_red_red &&& inv_black)
 
 rbtree_spec :: Spec
 rbtree_spec = describe "is Red-Black tree" $ do
