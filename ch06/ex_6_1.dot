@@ -1,0 +1,30 @@
+digraph G {
+    {rank="same";
+      c0[label="0"]
+      c1[label="1"]
+      c2[label="2"]
+      c3[label="3"]
+    }
+    cEmpty[label="empty"]
+    a[label="a=snoc empty 0"]
+    c0 -> a
+    cEmpty -> a
+    b[label="b=snoc a 1"]
+    a -> b
+    c1 -> b
+    c[label="c=tail b"]
+    b -> c
+    d[label="d=snoc b 2"]
+    b -> d
+    c2 -> d
+    e[label="e=c++d"]
+    c -> e
+    d -> e
+    f[label="f=tail c"]
+    c -> f
+    g[label="g=snoc d 3"]
+    d -> g
+    c3 -> g
+//    c1 -> c[style="dashed",color=grey]
+//    cEmpty -> f[style="dashed",color=grey]
+}
